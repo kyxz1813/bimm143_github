@@ -1,0 +1,272 @@
+---
+title: "Class 8 Mini-Project"
+format: pdf
+author: "Kate Zhou (PID: A17373286)"
+toc: TRUE
+---
+
+## Background
+
+This mini-project explores a complete analysis using the unsupervised learning techniques covered in class. You’ll extend what you’ve learned by combining PCA as a preprocessing step to clustering using data that consist of measurements of cell nuclei of human breast masses. This expands on our RNA-Seq analysis from last day.
+
+## Data Import
+
+Our data come from the U. of Wisconsin Medical Center
+```{r}
+# Save your input data file into your Project directory
+fna.data <- "WisconsinCancer.csv"
+
+# Complete the following code to input the data and store as wisc.df
+wisc.df <- read.csv(fna.data, row.names=1)
+```
+
+> Q1. How many patients/datapoints are in this dataset?
+
+```{r}
+nrow(wisc.df)
+```
+
+> Q2. How many of the observation have a malignant diagnosis?
+
+```{r}
+sum(wisc.df$diagnosis == "M")
+```
+> Q3. How many variables/features in the data are sufficed with "_mean"?
+
+```{r}
+colnames(wisc.df)
+```
+
+
+```{r}
+length(grep("_mean", colnames(wisc.df)))
+```
+There is a diagnosis column that is the clinican consenus that I wnat to exclude from any further analysis. We will come back later and compare our results to this diasgnosis.
+
+```{r}
+diagnosis <- as.factor(wisc.df$diagnosis)
+diagnosis
+```
+
+Now we can remove it from the `wisc.df`
+```{r}
+wisc.df <- wisc.df[,-1]
+```
+
+```{r}
+wisc.df[1, 1]
+```
+
+## Clustering
+
+Let's try a `hclust()`
+```{r}
+hc <- hclust(dist(wisc.df))
+plot(hc)
+```
+We can extract clusters from this rather poor  dendrogram/tree
+with the `cutree()`
+```{r}
+grps <- cutree(hc, k=2)
+```
+```{r}
+table(diagnosis)
+```
+
+We can generate a cross-table compares our cluster `grps` vector with our `diagnosis` vector values
+```{r}
+table(diagnosis, grps)
+```
+
+## Principal Component Analysis
+
+### The importance of data scaling
+
+The main function for PCA in base R is `prcomp()` it has a default input parameter of `scale=False`.
+```{r}
+#prcomp()
+head(mtcars)
+```
+we could do a PCA of this data, could be misleading
+```{r}
+pc <- prcomp(mtcars)
+biplot(pc)
+```
+Let's look at the mean values of each column and their standard deviation.
+```{r}
+colMeans(mtcars)
+```
+
+```{r}
+apply(mtcars, 2, sd)
+```
+We can "scale" this data before PCA to gwet a much better representation and analysis of all the columns.
+```{r}
+mtscale <- scale(mtcars)
+```
+
+```{r}
+colMeans(mtscale)
+```
+
+```{r}
+apply(mtscale, 2, sd)
+```
+
+```{r}
+pc.scale <- prcomp(mtscale)
+```
+
+We can look at the two main result figures from PCA - the "PC plot" (a.k.a score plot, ordienation plot, or PC1 vs PC2 plot). The "loadings plot" how the original variables contribute to the new PCs.
+
+```{r}
+pc.scale
+```
+
+A loading
+```{r}
+library(ggplot2)
+
+ggplot(pc$rotation) +
+  aes(PC1, rownames(pc$rotation)) +
+  geom_col()
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(pc.scale$rotation) +
+  aes(PC1, rownames(pc.scale$rotation)) +
+  geom_col()
+```
+
+PC plot of scaled PCA results
+```{r}
+library(ggrepel)
+ggplot(pc.scale$x) +
+  aes(PC1, PC2, label=rownames(pc.scale$x)) +
+  geom_point() +
+  geom_text_repel()
+```
+
+> Key point: In general we will set `scale=TRUE` when we do PCA. This is not the default but probably should be...
+
+We can check the SD and mean of the differnt columns in `wisc.data` to see if we need to scale - hint: we do!
+
+### PCA of wisc.data
+
+```{r}
+wisc.pr <- prcomp(wisc.df, scale=TRUE)
+```
+
+```{r}
+summary(wisc.pr)
+```
+
+Let's make the main PC1 vs PC2
+```{r}
+ggplot(wisc.pr$x) +
+  aes(PC1, PC2, col=diagnosis) +
+  geom_point() +
+  xlab("PC1(44.27%)") +
+  ylab("PC2(18.97%)")
+```
+
+> Q4. From your results, what proportion of the original variance is captured by the first principal components (PC1)?
+44.27%
+
+> Q5. How many principal components (PCs) are required to describe at least 70% of the original variance in the data?
+3
+
+> Q6. How many principal components (PCs) are required to describe at least 90% of the original variance in the data?
+7
+
+> Q7. What stands out to you about this plot? Is it easy or difficult to understand? Why?
+
+```{r}
+biplot(wisc.pr)
+```
+The graph capture the same information as the ggplot for PC1 and PC2. There are two noticeable cluster label in red and black
+
+> Q8. Generate a similar plot for principal components 1 and 3. What do you notice about these plots?
+
+```{r}
+ggplot(wisc.pr$x) +
+  aes(PC1, PC3, col=diagnosis) +
+  geom_point() +
+  xlab("PC1(44.27%)") +
+  ylab("PC3(9.393%)")
+```
+
+There is a red dots cluster on the right and blue dots cluster on the left. PC1 axis 0 value seem to separate the two cluster.
+
+> Q9. For the first principal component, what is the component of the loading vector (i.e. wisc.pr$rotation[,1]) for the feature concave.points_mean?
+
+```{r}
+wisc.pr$rotation["concave.points_mean", 1]
+```
+
+
+> Q10. What is the minimum number of principal components required to explain 80% of the variance of the data?
+
+PC5 Explains 84.734% of variance
+
+
+## 5. Combining Methods
+
+We can take our PCA results and use them as a basis set for other analysis such as clustering
+
+### Clustering on PCA results
+```{r}
+wisc.pr.hclust <- hclust(dist(wisc.pr$x[,1:2]), method="ward.D2")
+plot(wisc.pr.hclust)
+```
+
+We can "cut" this tree to yield our clusters (groups): 
+```{r}
+pc.grps <- cutree(wisc.pr.hclust, k = 2)
+table(pc.grps)
+```
+
+How do my cluster grps compare to the expert diagnosis?
+```{r}
+table(diagnosis, pc.grps)
+```
+
+
+> Q15. How well does the newly created model with four clusters separate out the two diagnoses?
+Better, but there are still misclassified points. Group 1 has 18 B, group 2 has 35 M that are misclassifed.
+
+> Q16. How well do the hierarchical clustering models you created in previous sections (i.e. before PCA) do in terms of separating the diagnoses? Again, use the table() function to compare the output of each model (wisc.km$cluster and wisc.hclust.clusters) with the vector containing the actual diagnoses.
+
+They did really badly before PCA. We did much better after PCA - the new PCA variables (what we called a basis set) give us much better seperation of M and B.
+
+## 7. Prediction
+
+We can use our PCA model for the analysis of the new "unseen" data. In this case from U. Mich.
+```{r}
+url <- "https://tinyurl.com/new-samples-CSV"
+new <- read.csv(url)
+npc <- predict(wisc.pr, newdata=new)
+npc
+```
+```{r}
+g <- as.factor(grps)
+levels(g)
+g <- relevel(g,2)
+levels(g)
+```
+
+```{r}
+plot(wisc.pr$x[,1:2], col=as.factor(g))
+points(npc[,1], npc[,2], col="blue", pch=16, cex=3)
+text(npc[,1], npc[,2], c(1,2), col="white")
+```
+
+
+> Q18. Which of these new patients should we prioritize for follow up based on your results?
+
+Group 1 patients
+
+
+
