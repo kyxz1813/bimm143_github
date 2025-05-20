@@ -1,0 +1,42 @@
+---
+title: "hw06 Question 6"
+format: pdf
+author: "Kate Zhou"
+---
+
+```{r}
+library(bio3d)
+```
+
+protein_plot function takes in protein drug interactions code and outputs a plot for the specified protein.
+```{r}
+# Input are protein drug interactions code
+protein_plot <- function(protein) {
+  read_protein <- read.pdb(protein)
+  read_protein.chainA <- trim.pdb(read_protein, chain="A", elety="CA")
+  read_protein.b <- read_protein.chainA$atom$b
+  
+  #outputs a plot for the specified protein.
+  plotb3(read_protein.b, read_protein.chainA, typ="l", ylab="Bfactor")
+}
+  
+  
+```
+
+```{r}
+protein_plot("4AKE")
+```
+```{r}
+protein_plot("1AKE")
+```
+
+
+```{r}
+protein_plot("1E4Y")
+```
+
+
+
+
+
+
