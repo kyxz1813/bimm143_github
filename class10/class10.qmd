@@ -1,0 +1,219 @@
+---
+title: "Class10: Structural Bioinformatics (Pt. 1)"
+format: html
+author: "Kate Zhou (A17373286)"
+toc: TRUE
+---
+
+## The PDB Database
+
+The main repositaroy of biomolecular strucutre data is called the [Protein Data Bank](http://www.rcsb.org/) (PDB for short). It is the second oldest database (after GenBank).
+
+What is currently in PDB?
+```{r}
+stats <- read.csv("Data Export Summary.csv", row.names=1)
+stats 
+```
+
+> Q1: What percentage of structures in the PDB are solved by X-Ray and Electron Microscopy.
+
+```{r}
+stats$X.ray
+```
+```{r}
+# Substitute comma for nothing and convert to numeric
+y <- as.numeric(gsub("\\D", "", stats$X.ray))
+
+sum(y)
+
+```
+Turn this snippet to a function
+
+```{r}
+comma.sum <- function(x) {
+  y <- as.numeric(gsub("\\D", "", x))
+  return (sum(y))
+}
+```
+
+```{r}
+xray.sum <- comma.sum(stats$X.ray)
+em.sum <- comma.sum(stats$EM)
+total.sum <- comma.sum(stats$Total)
+```
+
+```{r}
+xray.sum/total.sum * 100
+```
+```{r}
+em.sum/total.sum * 100
+```
+
+> Q2: What proportion of structures in the PDB are protein?
+
+```{r}
+#try find a column name col
+
+int_df <- function(df) {
+  new_df <- data.frame(matrix(nrow = nrow(df), ncol = 0))
+  rownames(new_df) <- rownames(df)
+  for (col in colnames(df)) {
+    y <- as.numeric(gsub("\\D", "", df[[col]]))
+    new_df[[col]] <- y
+  }
+  return(new_df)
+}
+```
+
+```{r}
+stats.int <- int_df(stats)
+protein <- sum(stats.int$Total[1])
+total <- sum(stats.int$Total)
+protein / 25218852 * 100
+```
+
+> Q3: Type HIV in the PDB website search box on the home page and determine how many HIV-1 protease structures are in the current PDB?
+
+SKIPPED
+
+## 2. Visualizing with Mol-star
+
+Explore the HIV-1 protease structure with PDB code: `1HSG`
+Mol-star homepage at: https://molstar.org/viewer/
+
+![Figure 1. A first view of HIV-pr](1HSG.png)
+
+![Figure 2. Molecular Surface](1HSG(2).png)
+
+![Figure 3. The catatilically important ASP 25 amino acids and drug interacting HOH 308 water molecule](1HSG(3).png)
+
+## 3. Using the bio3d package in R
+
+The Bio3D package is focused on structural bioinformatics analysis and allows us to read and analyze PDB (and related)
+data.
+
+```{r}
+library(bio3d)
+```
+
+```{r}
+pdb <- read.pdb("1hsg")
+pdb
+```
+
+```{r}
+attributes(pdb)
+```
+
+We can see atom data with `pdb$atom` :
+```{r}
+head(pdb$atom)
+```
+
+```{r}
+head(pdbseq(pdb))
+```
+```{r}
+library(bio3dview)
+library(NGLVieweR)
+```
+
+```{r}
+view.pdb(pdb) |>
+  setSpin()
+```
+```{r}
+view.pdb(pdb, backgroundColor = "lightblue", colorScheme = "sse")
+```
+
+```{r}
+sel <- atom.select(pdb, resno=25)
+
+view.pdb(pdb, cols=c("green", "orange"), highlight = sel,
+         highlight.style = "spacefill") |>
+  setRock()
+
+```
+
+## Predicting functional motions of a single structure
+
+We can finish off today with a bioinformatics prediction of the functional motions of a protein.
+
+```{r}
+adk <- read.pdb("6s36")
+adk
+```
+
+```{r}
+m <- nma(adk)
+plot(m)
+```
+
+```{r}
+view.nma(m)
+```
+
+We can write a trajectory of the predicted dynamics and view this in Mol-star.
+```{r}
+#mktrj(m, file="nma.pdb")
+```
+
+```{r}
+library(bio3d)
+id <- "1ake_A"
+aa <- get.seq(id)
+aa
+```
+
+```{r}
+blast <- blast.pdb(aa)
+```
+```{r}
+head(blast$hit.tbl)
+```
+
+```{r}
+hits <- plot(blast)
+```
+
+Our "top hits" i.e. the most similar entries in the database are:
+```{r}
+hits$pdb.id
+```
+
+```{r}
+files <- get.pdb(hits$pdb.id, path="pdbs", split=TRUE, gzip=TRUE)
+```
+
+```{r}
+# Align releated PDBs
+pdbs <- pdbaln(files, fit = TRUE, exefile="msa")
+```
+side-note:
+```{r}
+library(bio3dview)
+
+view.pdbs(pdbs)
+```
+
+This is better but still difficult to see what is similar and different in all these structure or indeed learn much about how this family work.
+
+Let's try PCA:
+```{r}
+pc <- pca(pdbs)
+plot(pc)
+```
+
+```{r}
+plot(pc, pc.axes= 1:2)
+```
+
+```{r}
+view.pca(pc)
+```
+
+Write a PDB "trajectory" for mol-star
+```{r}
+mktrj(pc, file="pca_results.pdb")
+```
+
