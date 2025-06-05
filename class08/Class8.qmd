@@ -1,6 +1,6 @@
 ---
 title: "Class 8 Mini-Project"
-format: pdf
+format: html
 author: "Kate Zhou (PID: A17373286)"
 toc: TRUE
 ---
