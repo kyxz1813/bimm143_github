@@ -1,5 +1,5 @@
 # BIMM 143
-My classwork from BIMM143 Spring 25 at UC San Diego
+My classwork from [BIMM143 Spring 25](https://bioboot.github.io/bimm143_S25/) at UC San Diego
 
 - 04 Intro to R
 
