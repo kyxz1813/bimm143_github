@@ -1,0 +1,81 @@
+---
+title: "class12: Population Scale Analysis"
+format: pdf
+author: "Kate Zhou (A17373286)"
+toc: TRUE
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Section 1. Proportion of G/G in a population
+
+Downloaded a CSV file from Ensemble 
+< https://useast.ensembl.org/Homo_sapiens/Location/View?db=core;r=17:39872367-39873367;v=rs12936231;vdb=variation;vf=959765854 >
+
+Here we read this CSV file
+
+```{r}
+mxl <- read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+head(mxl)
+```
+```{r}
+table(mxl$Genotype..forward.strand.)
+```
+```{r}
+table(mxl$Genotype..forward.strand.) / nrow(mxl) * 100
+```
+Now let's look at a different population. I pick
+```{r}
+gbr <- read.csv("373522-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+head(gbr)
+```
+```{r}
+table(gbr$Genotype..forward.strand.) / nrow(gbr) * 100
+```
+
+This variant that is associated with childhood asthma is more frequent in the GBR population than the MKL population.
+
+## Section 4 Population Scale Analysis
+
+One sample is obviously not enough to know what is happening in a population. You are interested in assessing genetic differences on a population scale. So, you processed about
+~230 samples and did the normalization on a genome level. 
+
+How many samples do we have?
+```{r}
+expr <- read.table("rs8067378_ENSG00000172057.6.txt")
+head(expr)
+```
+```{r}
+nrow(expr)
+```
+```{r}
+table(expr$geno)
+```
+A/A Median
+```{r}
+median(expr[expr$geno=="A/A",3])
+```
+
+A/G Median
+```{r}
+median(expr[expr$geno=="A/G",3])
+```
+G/G Median
+```{r}
+median(expr[expr$geno=="G/G",3])
+```
+
+```{r}
+library(ggplot2)
+```
+
+Let's make a boxplot
+```{r}
+ggplot(expr) +
+  aes(geno, exp, fill=geno) +
+  geom_boxplot(notch=TRUE)
+```
+
+
