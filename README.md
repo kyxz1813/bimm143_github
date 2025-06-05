@@ -5,11 +5,11 @@ My classwork from [BIMM143 Spring 25](https://bioboot.github.io/bimm143_S25/) at
 
 - 05 [Advanced graphic with **ggplot2**](class05/class05.md)
 
-- 06 [R functions] (class06/class06.md)
+- 06 [R functions](class06/class06.md)
 
-- 07 [Machine Learning for Bioinformatics] (class07/class07.md)
+- 07 [Machine Learning for Bioinformatics](class07/class07.md)
 
-- 08 [Unsupervised Learning Analysis of Human Breast Cancer Cells] (class08/class8.md)
+- 08 [Unsupervised Learning Analysis of Human Breast Cancer Cells](class08/class8.md)
 
 - 09 [Exploratory Analysis of Halloween Candy](class09/class09.md)
 
