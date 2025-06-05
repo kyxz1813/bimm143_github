@@ -1,7 +1,7 @@
 ---
 title: "Class06: function"
 author: Kate Zhou (PID:A17373286)
-format: pdf
+format: html
 toc: true
 ---
 ## 1.Add function
@@ -151,6 +151,5 @@ Random sequences  of length 8 and above are unique and cannot be found in databa
 
 ```{r}
 dim(cars)
-help(mean())
 ```
 
