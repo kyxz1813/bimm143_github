@@ -17,8 +17,13 @@ My classwork from [BIMM143 Spring 25](https://bioboot.github.io/bimm143_S25/) at
 
 - 11 [Structural Bioinformatics (Part 2)](class11/class11.md)
 
-- 12 Genome Informatics
+- 12 [Genome Informatics](class12/class12.md)
 
 - 13 [Transcriptomics and the analysis of RNA-Seq data](class13/class13.md)
 
 - 14 [Pathway Analysis from RNA-Seq Results](class14/class14.md)
+  
+- 17 [Analyzing sequencing data in the cloud](class17/class17.md)
+  
+- 18 [Investigating pertussis resurgence mini project](class18/class18.md)
+  
